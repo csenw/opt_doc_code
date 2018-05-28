@@ -1,0 +1,1 @@
+x=-3:0.1:3;y=-3:0.1:3;[X,Y]=meshgrid(x,y)f=X.^2+3*Y.^2;%surf(X,Y,f);clear x, y;x(1)=2; y(1)=2;f(1)=x(1)^2+3*y(1)^2;i=1;while (1)  tau = (x(i)^2+9*y(i)^2)/(2*x(i)^2+54*y(i)^2);  x(i+1) = (1-2*tau)*x(i);  y(i+1) = (1-6*tau)*y(i);  f(i+1) = x(i+1)^2 + 3*y(i+1)^2;    if f(i+1)-f(i) < 1e-6;    break;  end  f(i)  i=i+1;end  

@@ -1,0 +1,134 @@
+% This is LLNCS.DEM the demonstration file of
+% the LaTeX macro package from Springer-Verlag
+% for Lecture Notes in Computer Science,
+% version 2.4 for LaTeX2e as of 16. April 2010
+%
+
+\documentclass{llncs}
+%
+\usepackage{makeidx}  % allows for indexgeneration
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{bm}
+%
+\begin{document}
+%
+\frontmatter          % for the preliminaries
+%
+\pagestyle{headings}  % switches on printing of running heads
+\addtocmark{Hamiltonian Mechanics} % additional mark in the TOC
+%
+%%% \tableofcontents
+%
+\mainmatter              % start of the contributions
+%
+\title{Machine Learning Optimization Summary}
+%
+%% \author{Ivar Ekeland\inst{1} \and Roger Temam\inst{2}
+%% Jeffrey Dean \and David Grove \and Craig Chambers \and Kim~B.~Bruce \and
+%% Elsa Bertino}
+%% %
+%% \authorrunning{Ivar Ekeland et al.} % abbreviated author list (for running head)
+%% %
+%% %%%% list of authors for the TOC (use if author list has to be modified)
+%% \tocauthor{Ivar Ekeland, Roger Temam, Jeffrey Dean, David Grove,
+%% Craig Chambers, Kim B. Bruce, and Elisa Bertino}
+%% %
+%% \institute{Princeton University, Princeton NJ 08544, USA,\\
+%% \email{I.Ekeland@princeton.edu},\\ WWW home page:
+%% \texttt{http://users/\homedir iekeland/web/welcome.html}
+%% \and
+%% Universit\'{e} de Paris-Sud,
+%% Laboratoire d'Analyse Num\'{e}rique, B\^{a}timent 425,\\
+%% F-91405 Orsay Cedex, France}
+%% 
+\maketitle              % typeset the title of the contribution
+
+\begin{abstract}
+\keywords{machine learning optimization, newton's method, gradient descent, fminsearch}
+\end{abstract}
+%
+\section{Unconstrained Optimization Methods}
+\subsection{Gradient Descent}
+Gradient Descent (GD) method is derivative related method. If we have a function $f(\cdot)$ and its gradient is $\bigtriangledown f(\cdot)$. 
+\begin{equation}
+    \label{eq_def_gradient}
+    \bigtriangledown f(\cdot) = \frac{\partial f(\cdot)}{x}\overline{x} + \frac{\partial f(\cdot)}{y}\overline{y} + \frac{\partial f(\cdot)}{z}\overline{z} + \cdots
+\end{equation}
+Note that the gradient is a vector. The number of terms in Eq. \eqref{eq_def_gradient} depends how many directions the function $f(\cdot)$ has. 
+For example, $f(x,y)=x^2+3y^2$ has two directions: $\overline{x}$ and $\overline{y}$. Its gradient at point $(x,y)$ is:
+\begin{equation}
+    \label{eq_ex1}
+    \bigtriangledown f(x,y) =  2x\overline{x} + 6y\overline{y}
+\end{equation}
+To determine the next point in the descending procedure, we need a function as follows:
+\begin{equation}
+    \label{eq_gd}
+\xi(\tau) = \overline{x} - \tau \cdot \bigtriangledown f(\overline{{x}}),
+\end{equation}
+where $\overline{x}$ is the current location. This equation is telling the next movement is going $\tau$ amount against (minus) the gradient of the current location. Also, $-\bigtriangledown f(\cdot)$ is the direction of steepest descent of $f$ at $(x,y)$
+How to calculate the parameter $\tau$? Actually, we can take Eq. \eqref{eq_gd} back to function $f(\cdot)$ to represent the next targeting point: $f(\xi(\tau))$. Note that as we aim to move $\tau$ amount against the gradient direction at $\overline{x}$ achieving the right point $f(\xi(\tau))$ where the gradient would be the minimal (=0). $\tau$ would be the optimal for that movement. Thus, we can get the derivative of the new point with respect to $\tau$ and set it to zero to obtain the optimal $\tau$.
+\begin{equation}
+    \frac{d f(\xi(\tau))}{ d \tau} =- \tau \bigtriangledown f(\xi(\tau)) \cdot \bigtriangledown f(\overline{x}) = -\tau \cdot \bigtriangledown f(\overline{x\prime}) \cdot f(\overline{x}) = 0
+\end{equation}
+Note that $\overline{x\prime}$ represents the new point after the movement. From this equation, we can see that the optimal $\tau$ can make the gradient at the new point ($\bigtriangledown f(\overline{x\prime})$) orthogonal to the gradient at the current location ($\bigtriangledown f(\overline{x}$) as inner product of their gradients is equal to 0. Let's go back to the example function $f(x,y)=x^2+3y^2$. In Eq. \eqref{eq_ex1}, we have its gradient at $(x,y)$. The function $f(\xi(\tau))$ should be:
+\begin{equation}
+    f(\xi(\tau))= (1-2\tau)^2 x^2 + 3(1-6\tau)^2y^2
+\end{equation}
+Then its derivative with respect to $\tau$ is
+\begin{equation}
+    \begin{aligned}
+    f^\prime(\xi(\tau)) = \frac{d f(\xi(\tau))}{d \tau} = 2(1-2\tau)(-2)x^2+ 3\cdot 2(1-6\tau)(-6)y^2 &= 0 \\
+    \Rightarrow  x^2-2\tau x^2 +9y^2 - 54\tau y^2 &= 0 \\
+    \Rightarrow \tau = \frac{x^2+9y^2}{2x^2+54y^2}
+    \end{aligned}
+\end{equation}
+Note that we can indeed get the optimal $\tau$ for each movement, however, the cost if very high if we have high dimensional data. 
+According to Eq. \eqref{eq_gd}, we can have $\xi = (1-2*\tau)x \hat{x} + (1-6*\tau)y \hat{y}$. Then we take the optimal $\tau$ back to this equation to update the new $x^\prime$ and $y^\prime$ iteratively until the function converges.  
+
+In machine learning, we can use gradient descent to optimize objective function of linear regression. The objective function is:
+\begin{equation}
+f(\theta)=\frac{1}{n}(\bm{y}-\bm{X}\theta)^T(\bm{y}-\bm{X}\theta) = \frac{1}{n}\sum\limits_{i=1}^n (y_i-\theta^T x_i)^2,
+\end{equation}
+where $\bm{y}\in \mathbb{R}^{n \times 1}$, $\bm{X} \in \mathbb{R}^{n\times d}$, $\theta \in \mathbb{R}^{d\times 1}$. $n$ is the number of data sample while $d$ is the number of feature dimension. Note that the loss function in linear regression is a squared loss (quadratic function). To use gradient descent to optimize (minimize) the loss, we can use Eq. \eqref{eq_gd} after we get the gradient of $f(\theta)$:
+\begin{equation}
+    \bigtriangledown f(\theta) = -2\bm{X}^T\bm{y} +2\bm{X}^T\bm{X}\theta = -\frac{2}{n}\sum\limits_{i=1}^n x_i(y_i-\theta^Tx_i)
+\end{equation}
+Note that we are optimizing $f(\theta)$. Then we can have the gradient descent equation as follows:
+\begin{equation}
+    \begin{aligned}
+    \theta_{k+1} &= \theta_k - \eta \bigtriangledown f(\theta_k) \\
+    \Rightarrow \theta_{k+1} &= \theta_k - \eta (-2\bm{X}^T\bm{y} +2\bm{X}^T\bm{X}\theta_k) \\
+    \Rightarrow \theta_{k+1} &= \theta_k - \eta [-\frac{2}{n}\sum\limits_{i=1}^n x_i(y_i-\theta^Tx_i)]
+    \end{aligned}
+\end{equation}
+As mentioned before, we can calculate the optimal $\eta$. However the cost is very high. So we just empirically tune the values of $\eta$. If $\eta$ is too small, the convergence process will be extremely slow as each step is very small. In contrast, if $\eta$ is very big, the objective function value will not converge.
+\subsection{Newton's Method}
+Newton's method is inspired by taylor expansion and is a second-order optimization method. Intuitively, we use Hessian in each iterative step when calculating $\theta$. 
+\begin{equation}
+   \theta_{k+1} = \theta_k - \bm{H} \bigtriangledown f(\theta_k)
+\end{equation}
+Hessian represents the curvature of function. In fact, Newton's method is inspired by Taylor expansion. The Taylor expansion is an approximation method.
+\begin{equation}
+    f(x+\epsilon) = f(x) + \frac{1}{1!}f^{\prime}(x)\epsilon + \frac{1}{2!}f^{\prime\prime}(x)\epsilon^2 + \cdots
+\end{equation}
+Taylor expansion approximates a point ($x+\epsilon$) close to $x$ by using a Taylor series. Just keep first and second order of Taylor expansion above (higher order derivatives of quadratic equation are equal to zero), then we have:
+\begin{equation}
+    f(\theta_{k+1}) = f(\theta_k) + f^{\prime}(\theta_k) (\theta_{k+1}-\theta_k) + \frac{1}{2}f^{\prime\prime}(\theta_k)(\theta_{k+1}-\theta_k)^2, 
+\end{equation}
+We are aiming to achieve the optimal location at $k+1$-th step, so we set derivative of $f(\theta_{k+1}$ w.r.t. $\theta_{k+1}$ be zero:
+\begin{equation}
+    \begin{aligned}
+    f^\prime(\theta_{k+1}) &= f^{\prime}(\theta_k)f^{\prime\prime}(\theta_k)(\theta_{k+1}-\theta_k) \\
+    \theta_{k+1} = \theta_k - 
+    \end{aligned}
+\end{equation}
+\subsection{fminsearch}
+
+%
+\clearpage
+\addtocmark[2]{Author Index} % additional numbered TOC entry
+\renewcommand{\indexname}{Author Index}
+%% \printindex
+\clearpage
+\end{document}
